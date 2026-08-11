@@ -107,20 +107,6 @@ export const pieces: Piece[] = [
       "A quiet landscape built from torn paper and earth pigments, held together by one long continuous line from corner to corner.",
   },
   {
-    slug: "noor",
-    title: "Noor — Light",
-    category: "Calligraphy",
-    price: 6800,
-    sold: false,
-    image: "https://picsum.photos/seed/alwankhat-noor/900/1125",
-    size: '42 × 56 cm',
-    medium: "Ink and luminous wash",
-    year: "2026",
-    featured: true,
-    story:
-      "Light drawn as a single breath. The word emerges out of a field of nearly-black, exactly the way dawn does.",
-  },
-  {
     slug: "bahar",
     title: "Bahar — Spring",
     category: "Paintings",
