@@ -1,0 +1,188 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #fdf4f7;
+  --bg-deep: #fbe7ee;
+  --ink: #5c4a52;
+  --ink-soft: #826a75;
+  --ink-faint: #9d8590;
+  --surface: #fffafb;
+  --hairline: rgba(92, 74, 82, 0.14);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #241b20;
+    --bg-deep: #2d2127;
+    --ink: #f4e1e8;
+    --ink-soft: #c8a9b6;
+    --ink-faint: #a58693;
+    --surface: #372830;
+    --hairline: rgba(244, 225, 232, 0.14);
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bgdeep: var(--bg-deep);
+  --color-ink: var(--ink);
+  --color-inksoft: var(--ink-soft);
+  --color-inkfaint: var(--ink-faint);
+  --color-surface: var(--surface);
+  --color-hairline: var(--hairline);
+  --color-cream: #fffdfc;
+  --color-blush: #f8c8dc;
+  --color-rose: #e8a0bf;
+  --color-dust: #b76e8f;
+  --color-gold: #c9a227;
+  --font-display: var(--font-cormorant);
+  --font-body: var(--font-lora);
+  --font-script: var(--font-great-vibes);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-lora), Georgia, "Times New Roman", serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+::selection {
+  background: var(--rose);
+  color: #fffdfc;
+}
+
+/* Hairline translucent chrome — iOS-like edge fade instead of a hard bar */
+.chrome {
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-bottom: 1px solid var(--hairline);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .chrome {
+    background: var(--bg);
+    backdrop-filter: none;
+  }
+}
+
+/* Pill button base — rose fill, cream text, gentle lift, physical press */
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  padding: 0.875rem 1.75rem;
+  font-family: var(--font-lora);
+  font-size: 0.9375rem;
+  line-height: 1;
+  transition:
+    transform 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out),
+    background-color 180ms var(--ease-out);
+}
+
+.btn-pill:active {
+  transform: scale(0.97);
+}
+
+.btn-pill-primary {
+  background: var(--rose);
+  color: #fffdfc;
+  box-shadow: 0 1px 0 rgba(255, 253, 252, 0.25) inset,
+    0 10px 28px -12px color-mix(in srgb, var(--rose) 70%, transparent);
+}
+
+/* Soft pink-tinted elevation — no grey/black shadows */
+.shadow-rose {
+  box-shadow: 0 1px 0 rgba(255, 253, 252, 0.5) inset,
+    0 24px 60px -28px color-mix(in srgb, var(--rose) 55%, transparent),
+    0 8px 22px -14px color-mix(in srgb, var(--rose) 40%, transparent);
+}
+
+/* Paper-grain overlay — fixed, non-interactive, GPU-friendly */
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .grain {
+    display: none;
+  }
+}
+
+/* Tiny gold fleck alongside a heading line */
+.fleck {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--rose);
+  vertical-align: middle;
+}
+
+.fleck-gold {
+  background: var(--gold);
+}
+
+/* Hairline rule with a centre dot — romantic divider */
+.divider-dot {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.divider-dot::before,
+.divider-dot::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--hairline);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-pill-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 1px 0 rgba(255, 253, 252, 0.25) inset,
+      0 16px 34px -12px color-mix(in srgb, var(--rose) 80%, transparent);
+  }
+}
+
+/* Mobile menu item entrance, mounted with a stagger via inline animation-delay */
+.menu-item {
+  transform: translateY(8px);
+  opacity: 0;
+  animation: menu-fade-up 450ms var(--ease-out) forwards;
+}
+
+@keyframes menu-fade-up {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-item {
+    transform: none;
+    opacity: 1;
+    animation: none;
+  }
+}
