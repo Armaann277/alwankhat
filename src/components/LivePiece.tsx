@@ -4,21 +4,27 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { collection, subscribePieces, type Piece } from "@/lib/store";
+import { syncCatalogue } from "@/lib/catalogue";
 import { formatINR } from "@/lib/format";
 import { useCart } from "@/components/CartProvider";
 
 export function LivePiece({ slug }: { slug: string }) {
   const [piece, setPiece] = useState<Piece | undefined>();
+  const [loaded, setLoaded] = useState(false);
   const { add } = useCart();
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
-    const refresh = () => setPiece(collection.get(slug));
+    const refresh = () => {
+      setPiece(collection.get(slug));
+      setLoaded(true);
+    };
     refresh();
+    syncCatalogue().then(refresh);
     return subscribePieces(refresh);
   }, [slug]);
 
-  if (!piece) {
+  if (loaded && !piece) {
     return (
       <section className="mx-auto max-w-[1400px] px-5 pb-32 pt-[clamp(7rem,14vw,12rem)] text-center md:px-10">
         <h1 className="font-display text-4xl italic text-ink">This piece isn't on the wall</h1>
@@ -28,6 +34,8 @@ export function LivePiece({ slug }: { slug: string }) {
       </section>
     );
   }
+
+  if (!piece) return null;
 
   return (
     <section className="mx-auto max-w-[1400px] px-5 pb-16 pt-[clamp(6.5rem,14vw,10rem)] md:px-10">

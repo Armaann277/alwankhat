@@ -5,6 +5,7 @@ import { motion, useReducedMotion, type Variants } from "motion/react";
 import type { Piece } from "@/data/pieces";
 import { ArtworkCard } from "@/components/ArtworkCard";
 import { collection, subscribePieces } from "@/lib/store";
+import { syncCatalogue } from "@/lib/catalogue";
 
 type Filter = "All" | "Paintings" | "Calligraphy";
 
@@ -34,6 +35,7 @@ export function CollectionGrid({ pieces }: { pieces: Piece[] }) {
   useEffect(() => {
     const refresh = () => setLive(collection.all());
     refresh();
+    syncCatalogue().then(refresh);
     return subscribePieces(refresh);
   }, []);
 

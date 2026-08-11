@@ -58,38 +58,39 @@ export const collection = {
     return read<Piece[]>(PIECES_KEY, []);
   },
   all(): Piece[] {
-    return [...this.readExtras(), ...seedPieces];
+    if (typeof window === "undefined") return seedPieces;
+    if (window.localStorage.getItem(PIECES_KEY) === null) return seedPieces;
+    return this.readExtras();
   },
   get(slug: string): Piece | undefined {
     return this.all().find((p) => p.slug === slug);
   },
+  setAll(pieces: Piece[]) {
+    write(PIECES_KEY, pieces);
+    emit();
+  },
   upsert(piece: Piece) {
-    const extras = this.readExtras();
-    const idx = extras.findIndex((p) => p.slug === piece.slug);
+    const list = this.all();
+    const idx = list.findIndex((p) => p.slug === piece.slug);
     const next =
-      idx >= 0
-        ? extras.map((p, i) => (i === idx ? piece : p))
-        : [piece, ...extras];
+      idx >= 0 ? list.map((p, i) => (i === idx ? piece : p)) : [piece, ...list];
     write(PIECES_KEY, next);
     emit();
   },
   patch(slug: string, patch: Partial<Piece>) {
-    const extras = this.readExtras();
-    const idx = extras.findIndex((p) => p.slug === slug);
-    if (idx >= 0) {
-      this.upsert({ ...(extras[idx] as Piece), ...patch });
-      return;
-    }
-    const seed = seedPieces.find((p) => p.slug === slug);
-    if (seed) {
-      write(PIECES_KEY, [{ ...seed, ...patch }, ...extras]);
-      emit();
-    }
+    const list = this.all();
+    const idx = list.findIndex((p) => p.slug === slug);
+    if (idx < 0) return;
+    write(
+      PIECES_KEY,
+      list.map((p, i) => (i === idx ? ({ ...p, ...patch } as Piece) : p)),
+    );
+    emit();
   },
   remove(slug: string) {
     write(
       PIECES_KEY,
-      this.readExtras().filter((p) => p.slug !== slug),
+      this.all().filter((p) => p.slug !== slug),
     );
     emit();
   },

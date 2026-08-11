@@ -3,7 +3,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { admin, collection, seedPieces, subscribePieces, type Piece as StoredPiece } from "@/lib/store";
+import { admin, collection, subscribePieces, type Piece as StoredPiece } from "@/lib/store";
+import { syncCatalogue, savePiece, deletePiece } from "@/lib/catalogue";
 import { formatINR } from "@/lib/format";
 
 type Piece = {
@@ -69,6 +70,7 @@ export default function AdminPage() {
     if (!unlocked) return;
     const refresh = () => setPieces(collection.all());
     refresh();
+    syncCatalogue().then(refresh);
     return subscribePieces(refresh);
   }, [unlocked]);
 
@@ -116,14 +118,11 @@ export default function AdminPage() {
     );
   }
 
-  const extras = collection.readExtras().map((p) => p.slug);
-  const isSeed = (s: string) => seedPieces.some((p) => p.slug === s);
-
   function setField(key: string, value: string | number | boolean) {
     setDraft((d) => ({ ...d, [key]: value }));
   }
 
-  function save(e: FormEvent<HTMLFormElement>) {
+  async function save(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const slug = draft.slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
     const piece: Piece = {
@@ -141,7 +140,12 @@ export default function AdminPage() {
     setShowForm(false);
     setDraft(emptyDraft);
     setEditing(null);
-    setSavedMsg("Saved — the catalogue breathes again.");
+    const ok = await savePiece(piece as StoredPiece);
+    setSavedMsg(
+      ok
+        ? "Saved — the catalogue breathes again."
+        : "Saved here, but the database didn't accept it — check the Supabase env vars on Render.",
+    );
   }
 
   function beginEdit(piece: Piece) {
@@ -150,12 +154,21 @@ export default function AdminPage() {
     setShowForm(true);
   }
 
-  function toggleSold(slug: string, sold: boolean) {
+  async function toggleSold(slug: string, sold: boolean) {
     collection.patch(slug, { sold });
+    const piece = collection.get(slug);
+    if (piece) savePiece(piece as StoredPiece);
   }
 
-  function setPrice(slug: string, price: number) {
+  async function setPrice(slug: string, price: number) {
     collection.patch(slug, { price });
+    const piece = collection.get(slug);
+    if (piece) savePiece(piece as StoredPiece);
+  }
+
+  async function removePiece(slug: string) {
+    collection.remove(slug);
+    await deletePiece(slug);
   }
 
   return (
@@ -299,11 +312,9 @@ export default function AdminPage() {
                     <button type="button" onClick={() => beginEdit(piece)} className="text-[13px] text-inksoft underline decoration-inkfaint/50 underline-offset-4 hover:text-ink">
                       Edit
                     </button>
-                    {!isSeed(piece.slug) ? (
-                      <button type="button" onClick={() => collection.remove(piece.slug)} className="text-[13px] text-dust underline decoration-dust/40 underline-offset-4 hover:text-ink">
-                        Delete
-                      </button>
-                    ) : null}
+                    <button type="button" onClick={() => removePiece(piece.slug)} className="text-[13px] text-dust underline decoration-dust/40 underline-offset-4 hover:text-ink">
+                      Delete
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -311,7 +322,7 @@ export default function AdminPage() {
           </tbody>
         </table>
         <p className="mt-4 text-[12.5px] text-inkfaint">
-          Seed pieces can have their price and status edited, but only studio-added pieces can be deleted. {extras.length} studio-added.
+          Every change saves to the studio database the moment you make it.
         </p>
       </div>
     </section>

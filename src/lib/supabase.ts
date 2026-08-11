@@ -6,37 +6,12 @@ const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export const isSupabaseConfigured = Boolean(url && anonKey);
 
+// The service_role key bypasses RLS, so it must never reach the browser.
+// Client bundles get the anon key; the server may use the service key.
+const key = typeof window === "undefined" ? serviceKey ?? anonKey : anonKey;
+
 export const supabase = isSupabaseConfigured
-  ? createClient(url as string, serviceKey ?? (anonKey as string), {
-      auth: { persistSession: true },
+  ? createClient(url as string, key as string, {
+      auth: { persistSession: false },
     })
   : null;
-
-export const db = {
-  async listPieces() {
-    if (!supabase) return null;
-    const { data, error } = await supabase
-      .from("pieces")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) throw error;
-    return data;
-  },
-  async upsertPiece(piece: Record<string, unknown>) {
-    if (!supabase) return null;
-    const { error } = await supabase.from("pieces").upsert(piece, { onConflict: "slug" });
-    if (error) throw error;
-  },
-  async removePiece(slug: string) {
-    if (!supabase) return null;
-    const { error } = await supabase.from("pieces").delete().eq("slug", slug);
-    if (error) throw error;
-  },
-  async addCommission(entry: Record<string, unknown>) {
-    if (!supabase) return null;
-    const { error } = await supabase.from("commissions").insert(entry);
-    if (error) throw error;
-  },
-};
-
-export type { User } from "@supabase/supabase-js";

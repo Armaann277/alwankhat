@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { pieces } from "@/data/pieces";
 import { formatINR } from "@/lib/format";
-import { PurchaseButton } from "@/components/PurchaseButton";
+import { AddToCartButton } from "@/components/AddToCartButton";
 import { Reveal } from "@/components/Reveal";
 import { LivePiece } from "@/components/LivePiece";
 
@@ -130,7 +130,7 @@ export default async function PiecePage({ params }: Props) {
                   </p>
                 ) : (
                   <>
-                    <PurchaseButton />
+                    <AddToCartButton slug={piece.slug} />
                     <p className="mt-4 text-[13px] text-inksoft">
                       Ships across India, sealed and framed-ready. Secure payment
                       via Razorpay.

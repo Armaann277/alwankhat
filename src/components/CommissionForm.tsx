@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { motion, useReducedMotion } from "motion/react";
+import { submitCommission } from "@/lib/catalogue";
 
 type FieldName = "name" | "email" | "kind" | "brief";
 
@@ -28,15 +29,28 @@ function validate(form: FormData) {
 export function CommissionForm() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState(false);
   const reduce = useReducedMotion();
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
-    const found = validate(new FormData(form));
+    const data = new FormData(form);
+    const found = validate(data);
     setFieldErrors(found);
     if (Object.keys(found).length === 0) {
-      setSubmitted(true);
+      setSending(true);
+      setSendError(false);
+      const ok = await submitCommission({
+        name: String(data.get("name") ?? "").trim(),
+        email: String(data.get("email") ?? "").trim(),
+        kind: String(data.get("kind") ?? "").trim(),
+        brief: String(data.get("brief") ?? "").trim(),
+      });
+      setSending(false);
+      if (ok) setSubmitted(true);
+      else setSendError(true);
     }
   }
 
@@ -141,9 +155,18 @@ export function CommissionForm() {
           </p>
         </div>
 
-        <button type="submit" className="btn-pill btn-pill-primary w-full">
-          Send the brief
+        <button
+          type="submit"
+          disabled={sending}
+          className="btn-pill btn-pill-primary w-full disabled:cursor-wait disabled:opacity-70"
+        >
+          {sending ? "Sending…" : "Send the brief"}
         </button>
+        {sendError ? (
+          <p className="text-[13px] text-dust">
+            The brief didn't go through — please try again, or DM us at @alwankhat.
+          </p>
+        ) : null}
       </div>
     </form>
   );
